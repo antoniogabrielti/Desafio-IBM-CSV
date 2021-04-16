@@ -29,7 +29,7 @@ public class CriaCSV {
                 String[] arr = {linha[0], linha[1], linha[2], linha[3], linha[4]};
                 csvWriter.writeNext(arr);
                 cont++;
-                System.out.println("Temos: " + cont + " linhas.");
+                //System.out.println("Temos: " + cont + " linhas.");
             }
 
         }
