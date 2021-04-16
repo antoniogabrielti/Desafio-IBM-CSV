@@ -11,14 +11,14 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
+
 
 
 public class ProcessaCSV {
     public List<String[]> lerCSV(String nomeArquivo) throws IOException, ParseException, InterruptedException {
-
-        ReceitaService receitaService = new ReceitaService();
-        ConverteStringToDouble converteStringToDouble = new ConverteStringToDouble();
 
         Reader reader = Files.newBufferedReader(Paths.get(nomeArquivo));
         CSVReader csvReader = new CSVReaderBuilder(reader).withCSVParser(new CSVParserBuilder().withSeparator(';').build()).withSkipLines(1).build();
@@ -31,22 +31,31 @@ public class ProcessaCSV {
         AtomicReference<Integer> contError = new AtomicReference<>(0);
 
         for (String[] linha : linhas) {
-            new Thread(() -> {
-                try {
-                    resultadoAtualiza.set(receitaService.atualizarConta(linha[0], linha[1], converteStringToDouble.converte(linha[2]), linha[3]));
-                }
-                catch (ParseException | InterruptedException | RuntimeException e) {
-                    e.printStackTrace();
-                    contError.getAndSet(contError.get() + 1);
-                }
-            }).start();
-            String[] arr = {linha[0], linha[1], linha[2], linha[3], Boolean.toString(resultadoAtualiza.get())};
-            resultadoLinhas.add(contPosicaoLinha, arr);
+
+            resultadoLinhas.add(retornalinha(linha));
+
             contPosicaoLinha++;
+            resultadoAtualiza.set(true);
             System.out.println("Lendo linha " + contLinhaLidas++);
+
         }
         System.out.println("Ocorreram " + contError + " erros na chamada do Receita Service.");
         return resultadoLinhas;
 
+    }
+
+    //ESTE MÉTODO DEVERIA SER ASSINCRONO PARA QUE A PERFORMACE FICASSE IDEAL,
+    //REALIZEI DIVERÇOS TESTES COM FUNÇÕES ASSINCRONAS MAS NÃO TIVE TEMPO DE IMPLEMENTA-LAS
+    //UTILIZANDO MÉTODOS ASSINCRONOS NÃO NECESSITARIA ESPERAR O RETORNO DO ATUALIZACONTA() PARA CHAMA-LO NOVAMENTE;
+    ExecutorService executor = Executors.newFixedThreadPool(10);
+    public String[] retornalinha(String[] linha) throws ParseException, InterruptedException {
+        ReceitaService receitaService = new ReceitaService();
+        ConverteStringToDouble converteStringToDouble = new ConverteStringToDouble();
+        boolean res;
+
+        res = receitaService.atualizarConta(linha[0], linha[1], converteStringToDouble.converte(linha[2]), linha[3]);
+        String[] arr = {linha[0], linha[1], linha[2], linha[3], Boolean.toString(res)};
+        System.out.println("Lendo linha " + linha[0] + res);
+        return arr;
     }
 }

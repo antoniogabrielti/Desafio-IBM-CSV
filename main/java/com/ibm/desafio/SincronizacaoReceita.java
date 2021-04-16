@@ -40,10 +40,12 @@ public class SincronizacaoReceita{
         SpringApplication.run(SincronizacaoReceita.class, args);
         ProcessaCSV processaCSV = new ProcessaCSV();
         CriaCSV criaCSV = new CriaCSV();
-        criaCSV.escreve(processaCSV.lerCSV("arquivo.csv"));
+        criaCSV.escreve(processaCSV.lerCSV(args[0]));
         // Exemplo como chamar o "serviço" do Banco Central.
         // ReceitaService receitaService = new ReceitaService();
         // receitaService.atualizarConta("0101", "123456", 100.50, "A");
     }
 
 }
+// export PATH=$JAVA_HOME:/Library/Java/JavaVirtualMachines/jdk-11.0.10.jdk/Contents/Home/bin
+// export PATH=$mvn:/Library/apache-maven-3.8.1/bin
